@@ -1,0 +1,39 @@
+pipeline {
+  agent any
+
+  tools {
+    maven 'Maven 3'   // Ensure Maven is configured in Jenkins tools
+  }
+
+  stages {
+    stage('Clone Repo') {
+      steps {
+        git 'https://github.com/<your-username>/<sample-java-app>.git'
+      }
+    }
+
+    stage('Build with Maven') {
+      steps {
+        sh 'mvn clean package'
+      }
+    }
+
+    stage('Deploy to Tomcat') {
+      steps {
+        // Adjust IP and credentials to match your EC2 + Tomcat server
+        sh '''
+        scp -i mykey.pem target/*.war ec2-user@<EC2_PUBLIC_IP>:/opt/tomcat/webapps/
+        '''
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Build and deployment successful!'
+    }
+    failure {
+      echo 'Something went wrong.'
+    }
+  }
+}
